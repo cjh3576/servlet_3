@@ -5,16 +5,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
+import com.jh.page.SearchRow;
 import com.jh.util.DBConnector;
 
 public class noticeDAO {
 	//열 총 갯수
-	public int getTotalCount(String kind,String search) throws Exception {
+	public int getTotalCount(SearchRow searchRow) throws Exception {
 		int result;
 		Connection con = DBConnector.getConnect();
-		String sql = "select count(num) from notice where "+kind+" like ?";
+		String sql = "select count(num) from notice where "+searchRow.getSearch().getKind()+" like ?";
 		PreparedStatement st = con.prepareStatement(sql);
-		st.setString(1, "%"+search+"%");
+		st.setString(1, "%"+searchRow.getSearch().getSearch()+"%");
 		ResultSet rs = st.executeQuery();
 		rs.next();
 		result = rs.getInt(1);
@@ -25,19 +26,19 @@ public class noticeDAO {
 	
 	
 	//selectList
-	public ArrayList<noticeDTO> selectList(String kind, String search, int startRow, int lastRow) throws Exception{
+	public ArrayList<noticeDTO> selectList(SearchRow searchRow) throws Exception{
 		ArrayList<noticeDTO> ar = new ArrayList<noticeDTO>();
 		
 		Connection con =  DBConnector.getConnect();
 		String sql = "select * from " + 
 				"(select rownum R, p.* from " + 
-				"(select * from notice where "+kind+" like ? order by num desc) p) " + 
+				"(select * from notice where "+searchRow.getSearch().getKind()+" like ? order by num desc) p) " + 
 				"where R between ? and ?";
 		
 		PreparedStatement st = con.prepareStatement(sql);
-		st.setString(1, "%"+search+"%");
-		st.setInt(2, startRow);
-		st.setInt(3, lastRow);
+		st.setString(1, "%"+searchRow.getSearch().getSearch()+"%");
+		st.setInt(2, searchRow.getStartRow());
+		st.setInt(3, searchRow.getLastRow());
 		ResultSet rs = st.executeQuery();
 		while(rs.next()) {
 			noticeDTO dto = new noticeDTO();
