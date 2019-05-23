@@ -104,8 +104,7 @@ public class memberDAO {
 	
 	
 	//join
-	public int memberJoin(memberDTO dto) throws Exception{
-		Connection con = DBConnector.getConnect();
+	public int memberJoin(memberDTO dto, Connection con) throws Exception{
 		String sql = "insert into member values(?,?,?,?,?,?)";
 		
 		PreparedStatement st = con.prepareStatement(sql);
@@ -118,7 +117,7 @@ public class memberDAO {
 		st.setString(6, dto.getEmail());
 		
 		int result = st.executeUpdate();
-		DBConnector.disConnection(con, st);
+		st.close();
 		return result;
 	}
 }

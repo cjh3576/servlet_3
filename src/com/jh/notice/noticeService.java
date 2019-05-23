@@ -114,7 +114,7 @@ public class noticeService implements Action{
 		String method = request.getMethod(); //GET, POST
 		boolean check = true;
 		String path="../WEB-INF/views/notice/noticeWrite.jsp";
-		
+		System.out.println(method);
 		if(method.equals("POST")) {
 			noticeDTO noticedto = new noticeDTO();
 			//1. request를 하나로 합치기
