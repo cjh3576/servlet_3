@@ -28,7 +28,7 @@
 					<td>${noticedto.writer}</td>
 					<td>${noticedto.reg_date}</td>
 					<td>${noticedto.hit}</td>
-					<td><a href="../upload/${upload.fname}">${upload.oname}</a></td>
+					<td><a href="../upload/${noticedto.uploadDTO.fname}">${noticedto.uploadDTO.oname}</a></td>
 				</tr>
 				<tr>
 					<td colspan="5">${requestScope.noticedto.contents}
