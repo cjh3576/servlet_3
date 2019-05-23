@@ -119,21 +119,32 @@ public class noticeDAO {
 		DBConnector.disConnection(con, st);
 		return result;
 	}
+	public int getNum() throws Exception{
+	      int result = 0;
+	      Connection con = DBConnector.getConnect();
+	      String sql = "select notice_seq.nextval from dual";
+	      PreparedStatement st = con.prepareStatement(sql);
+	      ResultSet rs = st.executeQuery();
+	      rs.next();
+	      result = rs.getInt(1);
+	      
+	      DBConnector.disConnection(con, st, rs);
+	      return result;
+		
+	}
 	
 	//insert
-	public int insert(noticeDTO dto) throws Exception{
-		Connection con = DBConnector.getConnect();
-		String sql = "insert into notice values(notice_seq.nextval,?,?,?,sysdate,0)";
+	public int insert(noticeDTO dto, Connection con) throws Exception{
+		String sql = "insert into notice values(?,?,?,?,sysdate,0)";
 		
 		PreparedStatement st = con.prepareStatement(sql);
-		
-		st.setString(1, dto.getTitle());
-		st.setString(2, dto.getContents());
-		st.setString(3, dto.getWriter());
+		st.setInt(1, dto.getNum());
+		st.setString(2, dto.getTitle());
+		st.setString(3, dto.getContents());
+		st.setString(4, dto.getWriter());
 		
 		int result = st.executeUpdate();
-		DBConnector.disConnection(con, st);
-		
+		st.close();
 		return result;
 	}
 }

@@ -19,6 +19,7 @@
 					<th>NAME</th>
 					<th>DATE</th>
 					<th>HIT</th>
+					<th>File</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -27,9 +28,10 @@
 					<td>${noticedto.writer}</td>
 					<td>${noticedto.reg_date}</td>
 					<td>${noticedto.hit}</td>
+					<td><a href="../upload/${upload.fname}">${upload.oname}</a></td>
 				</tr>
 				<tr>
-					<td colspan="4">${requestScope.noticedto.contents}
+					<td colspan="5">${requestScope.noticedto.contents}
 				</tr>
 			</tbody>
 		

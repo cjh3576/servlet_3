@@ -10,9 +10,9 @@ public class UploadDAO {
 	//delete
 	
 	//insert
-	public int insert(UploadDTO uploadDTO) throws Exception{
+	public int insert(UploadDTO uploadDTO, Connection con) throws Exception{
 		int result = 0;
-		Connection con = DBConnector.getConnect();
+		
 		String sql = "insert into upload values(point_seq.nextval,?,?,?)";
 		PreparedStatement st = con.prepareStatement(sql);
 		st.setInt(1, uploadDTO.getNum());
@@ -20,8 +20,7 @@ public class UploadDAO {
 		st.setString(3, uploadDTO.getFname());
 		
 		result = st.executeUpdate();
-		DBConnector.disConnection(con, st);
-		
+		st.close();
 		return result;
 	}
 	//select
