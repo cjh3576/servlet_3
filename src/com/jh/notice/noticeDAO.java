@@ -119,6 +119,7 @@ public class noticeDAO {
 		DBConnector.disConnection(con, st);
 		return result;
 	}
+	//sequence
 	public int getNum() throws Exception{
 	      int result = 0;
 	      Connection con = DBConnector.getConnect();
