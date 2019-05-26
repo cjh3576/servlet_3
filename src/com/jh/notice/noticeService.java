@@ -1,6 +1,8 @@
 package com.jh.notice;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,16 +13,22 @@ import com.jh.action.actionForward;
 import com.jh.page.SearchMakePage;
 import com.jh.page.SearchPager;
 import com.jh.page.SearchRow;
+import com.jh.upload.UploadDAO;
+import com.jh.upload.UploadDTO;
+import com.jh.util.DBConnector;
 import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
 public class noticeService implements Action{
 	private noticeDAO noticedao;
+	private UploadDAO uploadDAO;
 	public noticeService(){
 		noticedao = new noticeDAO();
+		uploadDAO = new UploadDAO();
 	}
 	
 	actionForward actionforward = new actionForward();
+	//list
 	@Override
 	public actionForward list(HttpServletRequest request, HttpServletResponse response) {
 		actionForward actionforward = new actionForward();
@@ -61,16 +69,22 @@ public class noticeService implements Action{
 		
 		return actionforward;
 	}
+	
+	
+	//select
 	@Override
 	public actionForward select(HttpServletRequest request, HttpServletResponse response) {
 		actionForward actionforward = new actionForward();
 		
 		//없으면 삭제되었거나 없는글 alert 후 리스트로
 		noticeDTO noticedto = null;
+		UploadDTO uploadDTO = null;
 		try {
 			int num = Integer.parseInt(request.getParameter("num"));
 			noticedto = noticedao.selectOne(num);
 			noticedao.updateHit(num);
+			
+			uploadDTO = uploadDAO.selectOne(num); //파일 꺼내옴
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -78,6 +92,7 @@ public class noticeService implements Action{
 		String path="";
 		if(noticedto != null) {
 			request.setAttribute("noticedto", noticedto);
+			request.setAttribute("upload", uploadDTO);
 			path = "../WEB-INF/views/notice/noticeSelect.jsp";
 		}else {
 			request.setAttribute("message", "No Data");
@@ -89,6 +104,9 @@ public class noticeService implements Action{
 		actionforward.setPath(path);
 		return actionforward;
 	}
+	
+	
+	//insert
 	@Override
 	public actionForward insert(HttpServletRequest request, HttpServletResponse response) {
 		actionForward actionforward = new actionForward();
@@ -96,11 +114,11 @@ public class noticeService implements Action{
 		String method = request.getMethod(); //GET, POST
 		boolean check = true;
 		String path="../WEB-INF/views/notice/noticeWrite.jsp";
-		
+		System.out.println(method);
 		if(method.equals("POST")) {
 			noticeDTO noticedto = new noticeDTO();
 			//1. request를 하나로 합치기
-			String saveDirectory = request.getServletContext().getRealPath("upload");
+			String saveDirectory = request.getServletContext().getRealPath("upload"); //파일저장할 디스크 경로(C:~~~)
 			//System.out.println(saveDirectory);
 			int maxPostSize = 1024*1024*10; //byte
 			String encoding = "UTF-8";
@@ -120,16 +138,51 @@ public class noticeService implements Action{
 			//클라이언트가 업로드 할 때 파일 이름
 			String oName = multi.getOriginalFileName("f1"); //파일의 파라미터 이름
 			
+			UploadDTO uploadDTO = new UploadDTO();
+			uploadDTO.setFname(fileName);
+			uploadDTO.setOname(oName);
 			
 			noticedto.setTitle(multi.getParameter("title"));
 			noticedto.setWriter(multi.getParameter("writer"));
 			noticedto.setContents(multi.getParameter("contents"));
 			int result = 0;
+			Connection con = null;
 			try {
-				result = noticedao.insert(noticedto);
+				con = DBConnector.getConnect();
+				//auto commit 해제
+				con.setAutoCommit(false);
+				
+				int num = noticedao.getNum();
+				noticedto.setNum(num);
+				result = noticedao.insert(noticedto,con);
+				
+				uploadDTO.setNum(num);
+				result = uploadDAO.insert(uploadDTO,con);
+				
+				if(result<1) {
+					throw new Exception();
+				}
+				
+				con.commit();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
+				result=0;
+				try {
+					con.rollback();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				e.printStackTrace();
+			}finally {
+				try {
+					con.setAutoCommit(true);
+					con.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 			if(result>0) {
 				check = false;
